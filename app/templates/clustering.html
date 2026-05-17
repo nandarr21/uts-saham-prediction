@@ -1,0 +1,328 @@
+<!-- FILE: app/templates/clustering.html -->
+{% extends "base.html" %}
+
+{% block title %}StockAI — Analisis Clustering{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HEADER ───────────────────────────────────────── -->
+<section class="page-header py-5">
+  <div class="container">
+    <div data-aos="fade-right">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+          <li class="breadcrumb-item">
+            <a href="/" class="text-warning text-decoration-none">Beranda</a>
+          </li>
+          <li class="breadcrumb-item active text-muted">Clustering</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold text-white mb-1">
+        <i class="bi bi-diagram-3 text-warning me-2"></i>
+        Analisis K-Means Clustering
+      </h1>
+      <p class="text-muted mb-0">
+        Segmentasi kondisi pasar saham menggunakan
+        unsupervised learning K-Means.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+
+    <!-- ── INFO CLUSTER ──────────────────────────────────── -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-4" data-aos="zoom-in" data-aos-delay="0">
+        <div class="cluster-info-card bullish p-4 rounded-3 text-center h-100">
+          <i class="bi bi-arrow-up-circle-fill fs-1 text-success mb-3 d-block"></i>
+          <h4 class="text-white fw-bold">Bullish</h4>
+          <p class="text-muted small mb-3">
+            Kondisi pasar dengan tren naik. RSI tinggi,
+            return positif, harga di atas moving average.
+          </p>
+          <div class="cluster-metrics">
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">RSI Rata-rata</span>
+              <span class="text-success fw-bold">60–70</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Return 20 Hari</span>
+              <span class="text-success fw-bold">Positif</span>
+            </div>
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">Volatilitas</span>
+              <span class="text-success fw-bold">Rendah-Sedang</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+        <div class="cluster-info-card sideways p-4 rounded-3 text-center h-100">
+          <i class="bi bi-dash-circle-fill fs-1 text-warning mb-3 d-block"></i>
+          <h4 class="text-white fw-bold">Sideways</h4>
+          <p class="text-muted small mb-3">
+            Kondisi pasar konsolidasi. Harga bergerak
+            dalam rentang sempit tanpa tren jelas.
+          </p>
+          <div class="cluster-metrics">
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">RSI Rata-rata</span>
+              <span class="text-warning fw-bold">40–60</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Return 20 Hari</span>
+              <span class="text-warning fw-bold">Mendekati 0</span>
+            </div>
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">Volatilitas</span>
+              <span class="text-warning fw-bold">Tinggi</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
+        <div class="cluster-info-card bearish p-4 rounded-3 text-center h-100">
+          <i class="bi bi-arrow-down-circle-fill fs-1 text-danger mb-3 d-block"></i>
+          <h4 class="text-white fw-bold">Bearish</h4>
+          <p class="text-muted small mb-3">
+            Kondisi pasar dengan tren turun. RSI rendah,
+            return negatif, harga di bawah moving average.
+          </p>
+          <div class="cluster-metrics">
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">RSI Rata-rata</span>
+              <span class="text-danger fw-bold">30–50</span>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted">Return 20 Hari</span>
+              <span class="text-danger fw-bold">Negatif</span>
+            </div>
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">Volatilitas</span>
+              <span class="text-danger fw-bold">Rendah</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PARAMETER MODEL ───────────────────────────────── -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-5" data-aos="fade-right">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h5 class="text-white fw-bold mb-4">
+            <i class="bi bi-gear text-warning me-2"></i>
+            Parameter Model K-Means
+          </h5>
+          <table class="table table-dark table-sm table-borderless mb-0">
+            <tbody class="small">
+              <tr>
+                <td class="text-muted">Jumlah Cluster (K)</td>
+                <td class="text-white fw-bold text-end">
+                  {{ k_optimal }}
+                </td>
+              </tr>
+              <tr>
+                <td class="text-muted">Metode Init</td>
+                <td class="text-white fw-bold text-end">k-means++</td>
+              </tr>
+              <tr>
+                <td class="text-muted">n_init</td>
+                <td class="text-white fw-bold text-end">30</td>
+              </tr>
+              <tr>
+                <td class="text-muted">max_iter</td>
+                <td class="text-white fw-bold text-end">1000</td>
+              </tr>
+              <tr>
+                <td class="text-muted">Scaler</td>
+                <td class="text-white fw-bold text-end">RobustScaler</td>
+              </tr>
+              <tr>
+                <td class="text-muted">Fitur</td>
+                <td class="text-white fw-bold text-end">8 fitur</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <hr class="border-secondary my-3"/>
+
+          <h6 class="text-white fw-bold mb-3">Fitur yang Digunakan</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-warning-subtle text-warning">RSI</span>
+            <span class="badge bg-warning-subtle text-warning">Volatility</span>
+            <span class="badge bg-warning-subtle text-warning">Vol Ratio</span>
+            <span class="badge bg-warning-subtle text-warning">Return 5d</span>
+            <span class="badge bg-warning-subtle text-warning">Return 20d</span>
+            <span class="badge bg-warning-subtle text-warning">Price Range</span>
+            <span class="badge bg-warning-subtle text-warning">MA5</span>
+            <span class="badge bg-warning-subtle text-warning">MA20</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7" data-aos="fade-left">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h5 class="text-white fw-bold mb-2">
+            <i class="bi bi-graph-up text-warning me-2"></i>
+            Elbow Method & Silhouette Score
+          </h5>
+          <p class="text-muted small mb-3">
+            Digunakan untuk menentukan jumlah cluster optimal.
+          </p>
+          <img src="{{ url_for('static', filename='img/kmeans_elbow.png') }}"
+               class="img-fluid rounded-2 w-100"
+               alt="Elbow Method"
+               onerror="this.parentElement.innerHTML+=
+                 '<p class=\'text-muted small text-center mt-3\'>
+                 Grafik belum tersedia. Copy file PNG dari docs/ ke
+                 app/static/img/</p>'" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HASIL CLUSTERING ──────────────────────────────── -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8" data-aos="fade-up">
+        <div class="card-dark p-4 rounded-3">
+          <h5 class="text-white fw-bold mb-2">
+            <i class="bi bi-scatter-chart text-warning me-2"></i>
+            Visualisasi Cluster (PCA 2D)
+          </h5>
+          <p class="text-muted small mb-3">
+            Data direduksi ke 2 dimensi menggunakan PCA
+            untuk keperluan visualisasi.
+          </p>
+          <img src="{{ url_for('static', filename='img/kmeans_results.png') }}"
+               class="img-fluid rounded-2 w-100"
+               alt="K-Means Results"
+               onerror="this.parentElement.innerHTML+=
+                 '<p class=\'text-muted small text-center mt-3\'>
+                 Grafik belum tersedia.</p>'" />
+        </div>
+      </div>
+
+      <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h5 class="text-white fw-bold mb-4">
+            <i class="bi bi-pie-chart text-warning me-2"></i>
+            Distribusi Cluster
+          </h5>
+          <canvas id="clusterDonut" height="200"></canvas>
+
+          <hr class="border-secondary my-3"/>
+
+          <h6 class="text-white fw-bold mb-3">Interpretasi</h6>
+          <p class="text-muted small mb-0">
+            Distribusi cluster menunjukkan proporsi hari
+            perdagangan pada masing-masing kondisi pasar
+            selama periode 2013–2018. Dominasi cluster Bullish
+            mencerminkan tren bullish jangka panjang AAPL
+            pada periode tersebut.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARA BACA HASIL ───────────────────────────────── -->
+    <div class="card-dark p-4 rounded-3" data-aos="fade-up">
+      <h5 class="text-white fw-bold mb-4">
+        <i class="bi bi-book text-warning me-2"></i>
+        Cara Membaca Hasil Clustering
+      </h5>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="how-to-card p-3 rounded-2">
+            <h6 class="text-warning fw-bold mb-2">
+              <i class="bi bi-1-circle me-2"></i>Lihat Kondisi Pasar
+            </h6>
+            <p class="text-muted small mb-0">
+              Pada halaman Prediksi, hasil K-Means menunjukkan
+              kondisi pasar saat ini: Bullish, Sideways, atau Bearish.
+              Gunakan informasi ini sebagai konteks tambahan.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="how-to-card p-3 rounded-2">
+            <h6 class="text-warning fw-bold mb-2">
+              <i class="bi bi-2-circle me-2"></i>Kombinasikan dengan Prediksi
+            </h6>
+            <p class="text-muted small mb-0">
+              Jika kondisi Bullish dan prediksi harga naik,
+              sinyal lebih kuat. Jika kondisi Bearish namun
+              prediksi naik, waspadai potensi false signal.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="how-to-card p-3 rounded-2">
+            <h6 class="text-warning fw-bold mb-2">
+              <i class="bi bi-3-circle me-2"></i>Perhatikan Silhouette Score
+            </h6>
+            <p class="text-muted small mb-0">
+              Silhouette Score mendekati 1.0 berarti cluster
+              terpisah dengan baik. Score di bawah 0.3 berarti
+              batas antar cluster kurang jelas.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Donut Chart Distribusi Cluster ────────────────────────
+const clusterCtx = document.getElementById('clusterDonut');
+if (clusterCtx) {
+  new Chart(clusterCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Bullish', 'Sideways', 'Bearish'],
+      datasets: [{
+        data: [55, 25, 20],   // ← ganti dengan data aktual dari notebook
+        backgroundColor: [
+          'rgba(76,175,80,0.7)',
+          'rgba(255,152,0,0.7)',
+          'rgba(244,67,54,0.7)'
+        ],
+        borderColor: [
+          '#4CAF50', '#FF9800', '#F44336'
+        ],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive  : true,
+      cutout      : '65%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels  : {
+            color    : '#9CA3AF',
+            font     : { size: 11 },
+            padding  : 15,
+            usePointStyle: true
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx =>
+              ` ${ctx.label}: ${ctx.parsed}%`
+          }
+        }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

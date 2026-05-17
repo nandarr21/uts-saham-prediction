@@ -1,0 +1,362 @@
+<!-- FILE: app/templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}StockAI — Beranda{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO SECTION ──────────────────────────────────────── -->
+<section class="hero-section d-flex align-items-center">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <span class="badge bg-warning text-dark mb-3 px-3 py-2 rounded-pill">
+          <i class="bi bi-stars me-1"></i>Machine Learning · 5 Algoritma AI
+        </span>
+        <h1 class="display-4 fw-bold text-white lh-sm mb-4">
+          Prediksi Harga Saham
+          <span class="text-warning">Lebih Cerdas</span>
+        </h1>
+        <p class="lead text-muted mb-4">
+          Platform analisis prediktif harga saham menggunakan kombinasi
+          5 algoritma Machine Learning: Linear Regression, ANN, LSTM,
+          K-Means Clustering, dan Backpropagation Manual.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="/predict"
+             class="btn btn-warning btn-lg px-4 fw-semibold">
+            <i class="bi bi-cpu me-2"></i>Mulai Prediksi
+          </a>
+          <a href="/comparison"
+             class="btn btn-outline-light btn-lg px-4">
+            <i class="bi bi-bar-chart me-2"></i>Lihat Perbandingan
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-block" data-aos="fade-left">
+        <div class="hero-chart-box p-4">
+          <canvas id="heroChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS SECTION ─────────────────────────────────────── -->
+<section class="py-5 bg-dark-subtle">
+  <div class="container">
+    <div class="row g-4 text-center">
+      <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="0">
+        <div class="stat-card p-4 rounded-3">
+          <div class="stat-number text-warning fw-bold display-6">5</div>
+          <div class="text-muted small mt-1">Algoritma AI</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="100">
+        <div class="stat-card p-4 rounded-3">
+          <div class="stat-number text-warning fw-bold display-6">619K+</div>
+          <div class="text-muted small mt-1">Data Training</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="200">
+        <div class="stat-card p-4 rounded-3">
+          <div class="stat-number text-warning fw-bold display-6">15</div>
+          <div class="text-muted small mt-1">Fitur Input</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300">
+        <div class="stat-card p-4 rounded-3">
+          <div class="stat-number text-warning fw-bold display-6">5yr</div>
+          <div class="text-muted small mt-1">Rentang Dataset</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ALGORITMA SECTION ─────────────────────────────────── -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5" data-aos="fade-up">
+      <h2 class="fw-bold text-white">5 Algoritma Machine Learning</h2>
+      <p class="text-muted">
+        Setiap model dilatih dan dievaluasi secara terpisah
+        untuk analisis komparatif yang komprehensif
+      </p>
+    </div>
+    <div class="row g-4">
+
+      <!-- Linear Regression -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="0">
+        <div class="algo-card p-4 rounded-3 h-100">
+          <div class="algo-icon mb-3">
+            <i class="bi bi-graph-up fs-2 text-primary"></i>
+          </div>
+          <h5 class="text-white fw-bold">Linear Regression</h5>
+          <p class="text-muted small mb-3">
+            Model baseline yang memodelkan hubungan linier
+            antara fitur teknikal dengan harga penutupan.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-primary-subtle text-primary">MAE</span>
+            <span class="badge bg-primary-subtle text-primary">RMSE</span>
+            <span class="badge bg-primary-subtle text-primary">R²</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANN -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="algo-card p-4 rounded-3 h-100">
+          <div class="algo-icon mb-3">
+            <i class="bi bi-cpu fs-2 text-success"></i>
+          </div>
+          <h5 class="text-white fw-bold">Artificial Neural Network</h5>
+          <p class="text-muted small mb-3">
+            Jaringan saraf tiruan multilayer dengan BatchNorm
+            dan Dropout untuk menangkap pola non-linier.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-success-subtle text-success">Dense</span>
+            <span class="badge bg-success-subtle text-success">Dropout</span>
+            <span class="badge bg-success-subtle text-success">Huber</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LSTM -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="algo-card p-4 rounded-3 h-100">
+          <div class="algo-icon mb-3">
+            <i class="bi bi-arrow-repeat fs-2 text-info"></i>
+          </div>
+          <h5 class="text-white fw-bold">LSTM / RNN</h5>
+          <p class="text-muted small mb-3">
+            Long Short-Term Memory untuk menangkap
+            dependensi temporal dalam data time-series saham.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-info-subtle text-info">Sequential</span>
+            <span class="badge bg-info-subtle text-info">MAPE</span>
+            <span class="badge bg-info-subtle text-info">Time Series</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- K-Means -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="algo-card p-4 rounded-3 h-100">
+          <div class="algo-icon mb-3">
+            <i class="bi bi-diagram-3 fs-2 text-warning"></i>
+          </div>
+          <h5 class="text-white fw-bold">K-Means Clustering</h5>
+          <p class="text-muted small mb-3">
+            Segmentasi kondisi pasar (Bullish / Sideways / Bearish)
+            menggunakan unsupervised learning.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-warning-subtle text-warning">Silhouette</span>
+            <span class="badge bg-warning-subtle text-warning">Elbow</span>
+            <span class="badge bg-warning-subtle text-warning">PCA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backprop -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
+        <div class="algo-card p-4 rounded-3 h-100">
+          <div class="algo-icon mb-3">
+            <i class="bi bi-gear-wide-connected fs-2 text-danger"></i>
+          </div>
+          <h5 class="text-white fw-bold">Backpropagation Manual</h5>
+          <p class="text-muted small mb-3">
+            Implementasi neural network dari nol menggunakan
+            NumPy dengan LeakyReLU, Huber Loss, dan LR Decay.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-danger-subtle text-danger">NumPy</span>
+            <span class="badge bg-danger-subtle text-danger">LeakyReLU</span>
+            <span class="badge bg-danger-subtle text-danger">SGD</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Card -->
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
+        <div class="algo-card-cta p-4 rounded-3 h-100
+                    d-flex flex-column justify-content-center
+                    align-items-center text-center">
+          <i class="bi bi-arrow-right-circle fs-1 text-warning mb-3"></i>
+          <h5 class="text-white fw-bold">Coba Sekarang</h5>
+          <p class="text-muted small mb-4">
+            Masukkan data OHLCV dan dapatkan prediksi
+            dari semua model sekaligus.
+          </p>
+          <a href="/predict"
+             class="btn btn-warning px-4 fw-semibold">
+            Mulai Prediksi
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── DATASET SECTION ───────────────────────────────────── -->
+<section class="py-5 bg-dark-subtle">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <h2 class="fw-bold text-white mb-3">Dataset</h2>
+        <p class="text-muted mb-4">
+          Model dilatih menggunakan dataset
+          <strong class="text-white">S&P 500 All Stocks 5 Years</strong>
+          dari Kaggle yang mencakup data historis ratusan saham
+          dari tahun 2013 hingga 2018.
+        </p>
+        <ul class="list-unstyled">
+          <li class="mb-2 text-muted">
+            <i class="bi bi-check-circle-fill text-warning me-2"></i>
+            <strong class="text-white">619,040+</strong> baris data
+          </li>
+          <li class="mb-2 text-muted">
+            <i class="bi bi-check-circle-fill text-warning me-2"></i>
+            <strong class="text-white">505</strong> saham unik S&P 500
+          </li>
+          <li class="mb-2 text-muted">
+            <i class="bi bi-check-circle-fill text-warning me-2"></i>
+            Fitur: <strong class="text-white">Open, High, Low, Close, Volume</strong>
+          </li>
+          <li class="mb-2 text-muted">
+            <i class="bi bi-check-circle-fill text-warning me-2"></i>
+            Split: <strong class="text-white">70% Train / 15% Val / 15% Test</strong>
+          </li>
+          <li class="mb-2 text-muted">
+            <i class="bi bi-check-circle-fill text-warning me-2"></i>
+            Lisensi: <strong class="text-white">CC0 Public Domain</strong>
+          </li>
+        </ul>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <div class="dataset-info-box p-4 rounded-3">
+          <h6 class="text-warning fw-bold mb-3">
+            <i class="bi bi-table me-2"></i>Struktur Dataset
+          </h6>
+          <table class="table table-dark table-sm table-borderless mb-0">
+            <thead>
+              <tr class="text-muted small">
+                <th>Kolom</th>
+                <th>Tipe</th>
+                <th>Deskripsi</th>
+              </tr>
+            </thead>
+            <tbody class="small">
+              <tr>
+                <td class="text-warning">date</td>
+                <td class="text-muted">datetime</td>
+                <td class="text-muted">Tanggal perdagangan</td>
+              </tr>
+              <tr>
+                <td class="text-warning">open</td>
+                <td class="text-muted">float</td>
+                <td class="text-muted">Harga pembukaan</td>
+              </tr>
+              <tr>
+                <td class="text-warning">high</td>
+                <td class="text-muted">float</td>
+                <td class="text-muted">Harga tertinggi</td>
+              </tr>
+              <tr>
+                <td class="text-warning">low</td>
+                <td class="text-muted">float</td>
+                <td class="text-muted">Harga terendah</td>
+              </tr>
+              <tr>
+                <td class="text-warning">close</td>
+                <td class="text-muted">float</td>
+                <td class="text-muted">Harga penutupan ✓ target</td>
+              </tr>
+              <tr>
+                <td class="text-warning">volume</td>
+                <td class="text-muted">int</td>
+                <td class="text-muted">Volume perdagangan</td>
+              </tr>
+              <tr>
+                <td class="text-warning">Name</td>
+                <td class="text-muted">string</td>
+                <td class="text-muted">Ticker saham</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Hero Chart (animasi dummy data) ───────────────────────
+const ctx = document.getElementById('heroChart');
+if (ctx) {
+  const labels = Array.from({length: 30}, (_, i) => `Day ${i+1}`);
+  const actual  = [150,152,149,153,155,158,156,160,163,161,
+                   165,168,166,170,172,169,174,177,175,180,
+                   178,182,185,183,188,190,187,192,195,193];
+  const predict = [151,151,150,154,156,157,157,161,162,162,
+                   166,167,167,171,171,170,175,176,176,181,
+                   179,183,184,184,189,189,188,193,194,194];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Aktual',
+          data: actual,
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59,130,246,0.1)',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'Prediksi',
+          data: predict,
+          borderColor: '#F59E0B',
+          backgroundColor: 'rgba(245,158,11,0.05)',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: { color: '#9CA3AF', font: { size: 11 } }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#6B7280', font: { size: 9 } },
+          grid:  { color: 'rgba(255,255,255,0.05)' }
+        },
+        y: {
+          ticks: { color: '#6B7280', font: { size: 9 } },
+          grid:  { color: 'rgba(255,255,255,0.05)' }
+        }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

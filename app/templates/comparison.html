@@ -1,0 +1,574 @@
+<!-- FILE: app/templates/comparison.html -->
+{% extends "base.html" %}
+
+{% block title %}StockAI — Perbandingan Model{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HEADER ───────────────────────────────────────── -->
+<section class="page-header py-5">
+  <div class="container">
+    <div data-aos="fade-right">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+          <li class="breadcrumb-item">
+            <a href="/" class="text-warning text-decoration-none">Beranda</a>
+          </li>
+          <li class="breadcrumb-item active text-muted">Perbandingan Model</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold text-white mb-1">
+        <i class="bi bi-bar-chart-line text-warning me-2"></i>
+        Perbandingan Performa Model
+      </h1>
+      <p class="text-muted mb-0">
+        Analisis komparatif 5 algoritma Machine Learning
+        berdasarkan metrik MAE, RMSE, R², dan MAPE.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+
+    <!-- ── TABEL PERBANDINGAN ────────────────────────────── -->
+    <div class="card-dark p-4 rounded-3 mb-4" data-aos="fade-up">
+      <h5 class="text-white fw-bold mb-4">
+        <i class="bi bi-table text-warning me-2"></i>
+        Tabel Metrik Evaluasi
+      </h5>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0"
+               id="comparisonTable">
+          <thead>
+            <tr class="text-muted small">
+              <th>Model</th>
+              <th class="text-center">MAE
+                <i class="bi bi-info-circle ms-1"
+                   data-bs-toggle="tooltip"
+                   title="Mean Absolute Error — lebih kecil lebih baik"></i>
+              </th>
+              <th class="text-center">RMSE
+                <i class="bi bi-info-circle ms-1"
+                   data-bs-toggle="tooltip"
+                   title="Root Mean Squared Error — lebih kecil lebih baik"></i>
+              </th>
+              <th class="text-center">R²
+                <i class="bi bi-info-circle ms-1"
+                   data-bs-toggle="tooltip"
+                   title="Koefisien Determinasi — lebih besar lebih baik (max 1.0)"></i>
+              </th>
+              <th class="text-center">MAPE (%)
+                <i class="bi bi-info-circle ms-1"
+                   data-bs-toggle="tooltip"
+                   title="Mean Absolute Percentage Error — lebih kecil lebih baik"></i>
+              </th>
+              <th class="text-center">Catatan</th>
+            </tr>
+          </thead>
+          <tbody id="comparisonTableBody">
+            {% if comparison_data %}
+              {% for row in comparison_data %}
+              <tr>
+                <td>
+                  <span class="model-badge model-badge-{{ loop.index }}">
+                    {{ row['Model'] }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  {% if row['MAE'] != '-' %}
+                    <span class="metric-val">{{ row['MAE'] }}</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if row['RMSE'] != '-' %}
+                    <span class="metric-val">{{ row['RMSE'] }}</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if row['R²'] != '-' %}
+                    <span class="metric-val text-success">
+                      {{ row['R²'] }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if row['MAPE (%)'] != '-' %}
+                    <span class="metric-val">{{ row['MAPE (%)'] }}%</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <small class="text-muted">
+                    {{ row.get('Catatan Khusus', '—') }}
+                  </small>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  <i class="bi bi-exclamation-circle me-2"></i>
+                  Data perbandingan belum tersedia.
+                  Pastikan file
+                  <code>docs/model_comparison.csv</code> ada.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── GRAFIK PERBANDINGAN ───────────────────────────── -->
+    <div class="row g-4 mb-4">
+
+      <!-- MAE & RMSE -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="0">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h6 class="text-white fw-bold mb-1">MAE & RMSE per Model</h6>
+          <p class="text-muted small mb-3">Lebih kecil = lebih baik</p>
+          <canvas id="chartMAERMSE" height="220"></canvas>
+        </div>
+      </div>
+
+      <!-- R² Score -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h6 class="text-white fw-bold mb-1">R² Score per Model</h6>
+          <p class="text-muted small mb-3">Lebih besar = lebih baik (maks 1.0)</p>
+          <canvas id="chartR2" height="220"></canvas>
+        </div>
+      </div>
+
+      <!-- MAPE -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h6 class="text-white fw-bold mb-1">MAPE (%) per Model</h6>
+          <p class="text-muted small mb-3">Lebih kecil = lebih baik</p>
+          <canvas id="chartMAPE" height="220"></canvas>
+        </div>
+      </div>
+
+      <!-- Radar Chart -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h6 class="text-white fw-bold mb-1">Radar Performa</h6>
+          <p class="text-muted small mb-3">
+            Skor dinormalisasi 0–1 (lebih besar = lebih baik)
+          </p>
+          <canvas id="chartRadar" height="220"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── ANALISIS TEKS ──────────────────────────────────── -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8" data-aos="fade-up">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h5 class="text-white fw-bold mb-4">
+            <i class="bi bi-lightbulb text-warning me-2"></i>
+            Analisis & Interpretasi
+          </h5>
+
+          <div class="analysis-item mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-primary">1</span>
+              <h6 class="text-white mb-0">Linear Regression</h6>
+            </div>
+            <p class="text-muted small mb-0">
+              Sebagai model baseline, Linear Regression menunjukkan
+              performa yang baik pada data yang memiliki tren linier kuat.
+              Kelebihannya adalah interpretabilitas tinggi dan waktu training
+              sangat cepat. Kelemahannya tidak mampu menangkap pola
+              non-linier pada pergerakan harga saham yang kompleks.
+            </p>
+          </div>
+
+          <div class="analysis-item mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-success">2</span>
+              <h6 class="text-white mb-0">ANN (Artificial Neural Network)</h6>
+            </div>
+            <p class="text-muted small mb-0">
+              ANN mampu menangkap pola non-linier berkat arsitektur
+              multilayer dengan BatchNormalization. Performa lebih baik
+              dari Linear Regression karena dapat mempelajari hubungan
+              kompleks antar fitur teknikal. Membutuhkan lebih banyak
+              data dan waktu training dibanding model linear.
+            </p>
+          </div>
+
+          <div class="analysis-item mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-info">3</span>
+              <h6 class="text-white mb-0">LSTM / RNN</h6>
+            </div>
+            <p class="text-muted small mb-0">
+              LSTM dirancang khusus untuk data sekuensial dan time-series.
+              Kemampuan menangkap dependensi jangka panjang menjadikannya
+              sangat cocok untuk prediksi harga saham. Menggunakan
+              lookback window 10 hari untuk konteks historis yang optimal.
+            </p>
+          </div>
+
+          <div class="analysis-item mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-warning text-dark">4</span>
+              <h6 class="text-white mb-0">K-Means Clustering</h6>
+            </div>
+            <p class="text-muted small mb-0">
+              Digunakan sebagai analisis segmentasi kondisi pasar
+              (Bullish/Sideways/Bearish). Tidak menghasilkan prediksi
+              harga secara langsung, melainkan mengklasifikasikan
+              kondisi pasar untuk mendukung keputusan investasi.
+              Silhouette Score mengukur kualitas pemisahan cluster.
+            </p>
+          </div>
+
+          <div class="analysis-item">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-danger">5</span>
+              <h6 class="text-white mb-0">Backpropagation Manual</h6>
+            </div>
+            <p class="text-muted small mb-0">
+              Implementasi neural network dari nol menggunakan NumPy
+              menunjukkan pemahaman mendalam algoritma gradient descent.
+              Menggunakan LeakyReLU, Huber Loss, dan learning rate decay
+              untuk hasil yang lebih stabil. Performa kompetitif dengan
+              ANN meski tanpa framework deep learning.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Terbaik -->
+      <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-dark p-4 rounded-3 h-100">
+          <h5 class="text-white fw-bold mb-4">
+            <i class="bi bi-trophy text-warning me-2"></i>
+            Ranking Model
+          </h5>
+          <div id="rankingList">
+            <div class="text-muted small text-center py-3">
+              <i class="bi bi-hourglass-split me-2"></i>
+              Memuat ranking...
+            </div>
+          </div>
+
+          <hr class="border-secondary my-4" />
+
+          <h6 class="text-white fw-bold mb-3">Rekomendasi</h6>
+          <div class="recommendation-box p-3 rounded-2">
+            <p class="text-muted small mb-2">
+              <i class="bi bi-star-fill text-warning me-2"></i>
+              <strong class="text-white">Untuk Akurasi Tertinggi:</strong>
+            </p>
+            <p class="text-muted small mb-3">
+              Gunakan LSTM untuk prediksi harga saham karena dirancang
+              khusus untuk data time-series dengan memori jangka panjang.
+            </p>
+            <p class="text-muted small mb-2">
+              <i class="bi bi-lightning-fill text-info me-2"></i>
+              <strong class="text-white">Untuk Kecepatan:</strong>
+            </p>
+            <p class="text-muted small mb-0">
+              Gunakan Linear Regression sebagai baseline cepat
+              dengan interpretabilitas tinggi.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GAMBAR GRAFIK DARI NOTEBOOK ───────────────────── -->
+    <div class="card-dark p-4 rounded-3" data-aos="fade-up">
+      <h5 class="text-white fw-bold mb-4">
+        <i class="bi bi-image text-warning me-2"></i>
+        Grafik Hasil Training
+      </h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="text-muted small fw-semibold mb-2">Linear Regression</p>
+          <img src="{{ url_for('static', filename='img/lr_results.png') }}"
+               class="img-fluid rounded-2 w-100"
+               alt="LR Results"
+               onerror="this.style.display='none'" />
+        </div>
+        <div class="col-md-6">
+          <p class="text-muted small fw-semibold mb-2">ANN</p>
+          <img src="{{ url_for('static', filename='img/ann_results.png') }}"
+               class="img-fluid rounded-2 w-100"
+               alt="ANN Results"
+               onerror="this.style.display='none'" />
+        </div>
+        <div class="col-md-6">
+          <p class="text-muted small fw-semibold mb-2">LSTM</p>
+          <img src="{{ url_for('static', filename='img/lstm_results.png') }}"
+               class="img-fluid rounded-2 w-100"
+               alt="LSTM Results"
+               onerror="this.style.display='none'" />
+        </div>
+        <div class="col-md-6">
+          <p class="text-muted small fw-semibold mb-2">Backpropagation</p>
+          <img src="{{ url_for('static', filename='img/backprop_results.png') }}"
+               class="img-fluid rounded-2 w-100"
+               alt="Backprop Results"
+               onerror="this.style.display='none'" />
+        </div>
+      </div>
+      <div class="mt-3">
+        <p class="text-muted small fw-semibold mb-2">
+          Perbandingan Semua Model
+        </p>
+        <img src="{{ url_for('static', filename='img/model_comparison.png') }}"
+             class="img-fluid rounded-2 w-100"
+             alt="Model Comparison"
+             onerror="this.style.display='none'" />
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Load data dari API ────────────────────────────────────
+async function loadComparisonCharts() {
+  try {
+    const res  = await fetch('/api/comparison-data');
+    const data = await res.json();
+
+    if (!data || data.length === 0) return;
+
+    // Filter model dengan metrik numerik
+    const numeric = data.filter(d =>
+      d['MAE'] !== '-' && d['MAE'] !== undefined
+    );
+
+    const labels   = numeric.map(d => d['Model']);
+    const maes     = numeric.map(d => parseFloat(d['MAE'])    || 0);
+    const rmses    = numeric.map(d => parseFloat(d['RMSE'])   || 0);
+    const r2s      = numeric.map(d => parseFloat(d['R²'])     || 0);
+    const mapes    = numeric.map(d => parseFloat(d['MAPE (%)']) || 0);
+
+    const COLORS = [
+      '#3B82F6','#10B981','#06B6D4','#EF4444','#F59E0B'
+    ];
+
+    // ── Chart 1: MAE & RMSE ───────────────────────────────
+    new Chart(document.getElementById('chartMAERMSE'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'MAE',
+            data : maes,
+            backgroundColor: 'rgba(59,130,246,0.3)',
+            borderColor    : '#3B82F6',
+            borderWidth: 2, borderRadius: 4
+          },
+          {
+            label: 'RMSE',
+            data : rmses,
+            backgroundColor: 'rgba(239,68,68,0.3)',
+            borderColor    : '#EF4444',
+            borderWidth: 2, borderRadius: 4
+          }
+        ]
+      },
+      options: chartOptions('USD')
+    });
+
+    // ── Chart 2: R² Score ─────────────────────────────────
+    new Chart(document.getElementById('chartR2'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'R² Score',
+          data : r2s,
+          backgroundColor: r2s.map(v =>
+            v === Math.max(...r2s)
+              ? 'rgba(16,185,129,0.6)'
+              : 'rgba(16,185,129,0.2)'
+          ),
+          borderColor: '#10B981',
+          borderWidth: 2, borderRadius: 4
+        }]
+      },
+      options: {
+        ...chartOptions(''),
+        plugins: {
+          ...chartOptions('').plugins,
+          annotation: {}
+        },
+        scales: {
+          ...chartOptions('').scales,
+          y: {
+            ...chartOptions('').scales.y,
+            min: 0, max: 1,
+            ticks: {
+              color: '#9CA3AF',
+              callback: v => v.toFixed(2)
+            }
+          }
+        }
+      }
+    });
+
+    // ── Chart 3: MAPE ─────────────────────────────────────
+    new Chart(document.getElementById('chartMAPE'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'MAPE (%)',
+          data : mapes,
+          backgroundColor: mapes.map(v =>
+            v === Math.min(...mapes)
+              ? 'rgba(245,158,11,0.6)'
+              : 'rgba(245,158,11,0.2)'
+          ),
+          borderColor: '#F59E0B',
+          borderWidth: 2, borderRadius: 4
+        }]
+      },
+      options: chartOptions('%')
+    });
+
+    // ── Chart 4: Radar ────────────────────────────────────
+    // Normalisasi: MAE & RMSE & MAPE dibalik (lebih kecil → skor lebih tinggi)
+    const norm = (arr, invert = false) => {
+      const mn = Math.min(...arr), mx = Math.max(...arr);
+      return arr.map(v => {
+        const s = mx === mn ? 1 : (v - mn) / (mx - mn);
+        return invert ? 1 - s : s;
+      });
+    };
+
+    const radarData = labels.map((_, i) => ({
+      MAE_score  : norm(maes,  true)[i],
+      RMSE_score : norm(rmses, true)[i],
+      R2_score   : norm(r2s,   false)[i],
+      MAPE_score : norm(mapes, true)[i]
+    }));
+
+    new Chart(document.getElementById('chartRadar'), {
+      type: 'radar',
+      data: {
+        labels: ['MAE ↓', 'RMSE ↓', 'R² ↑', 'MAPE ↓'],
+        datasets: labels.map((label, i) => ({
+          label,
+          data: [
+            radarData[i].MAE_score,
+            radarData[i].RMSE_score,
+            radarData[i].R2_score,
+            radarData[i].MAPE_score
+          ],
+          borderColor    : COLORS[i],
+          backgroundColor: COLORS[i] + '22',
+          borderWidth: 2,
+          pointRadius: 4
+        }))
+      },
+      options: {
+        responsive: true,
+        scales: {
+          r: {
+            min: 0, max: 1,
+            ticks     : { color: '#6B7280', backdropColor: 'transparent' },
+            grid      : { color: 'rgba(255,255,255,0.08)' },
+            pointLabels: { color: '#9CA3AF', font: { size: 11 } }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: '#9CA3AF', font: { size: 10 } }
+          }
+        }
+      }
+    });
+
+    // ── Ranking ───────────────────────────────────────────
+    const ranked = [...numeric].sort((a, b) =>
+      parseFloat(b['R²']) - parseFloat(a['R²'])
+    );
+    const rankIcons = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+    const rankColors = [
+      'text-warning','text-secondary','text-warning-emphasis',
+      'text-muted','text-muted'
+    ];
+    const rankHTML = ranked.map((d, i) => `
+      <div class="d-flex justify-content-between
+                  align-items-center mb-3 ranking-row">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-5">${rankIcons[i]}</span>
+          <span class="text-white small fw-semibold">${d['Model']}</span>
+        </div>
+        <div class="text-end">
+          <span class="${rankColors[i]} small fw-bold">
+            R²=${parseFloat(d['R²']).toFixed(4)}
+          </span>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('rankingList').innerHTML = rankHTML;
+
+    // ── Tooltip Bootstrap ─────────────────────────────────
+    document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      .forEach(el => new bootstrap.Tooltip(el));
+
+  } catch (err) {
+    console.error('Error loading comparison data:', err);
+  }
+}
+
+// ── Helper: opsi chart default ────────────────────────────
+function chartOptions(unit) {
+  return {
+    responsive: true,
+    plugins: {
+      legend: {
+        labels: { color: '#9CA3AF', font: { size: 10 } }
+      },
+      tooltip: {
+        callbacks: {
+          label: ctx =>
+            ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(4)}${unit}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#9CA3AF', font: { size: 10 } },
+        grid : { color: 'rgba(255,255,255,0.05)' }
+      },
+      y: {
+        ticks: {
+          color: '#9CA3AF',
+          font : { size: 10 },
+          callback: v => `${v.toFixed(2)}${unit}`
+        },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+      }
+    }
+  };
+}
+
+// Jalankan saat halaman load
+loadComparisonCharts();
+</script>
+{% endblock %}

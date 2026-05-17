@@ -1,0 +1,508 @@
+<!-- FILE: app/templates/predict.html -->
+{% extends "base.html" %}
+
+{% block title %}StockAI — Prediksi Harga Saham{% endblock %}
+
+{% block content %}
+
+<!-- ── PAGE HEADER ───────────────────────────────────────── -->
+<section class="page-header py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col" data-aos="fade-right">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item">
+              <a href="/" class="text-warning text-decoration-none">Beranda</a>
+            </li>
+            <li class="breadcrumb-item active text-muted">Prediksi</li>
+          </ol>
+        </nav>
+        <h1 class="fw-bold text-white mb-1">
+          <i class="bi bi-cpu text-warning me-2"></i>Prediksi Harga Saham
+        </h1>
+        <p class="text-muted mb-0">
+          Masukkan data OHLCV dan riwayat harga untuk mendapatkan
+          prediksi dari 5 algoritma sekaligus.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- ── FORM INPUT ──────────────────────────────────── -->
+      <div class="col-lg-5" data-aos="fade-right">
+        <div class="card-dark p-4 rounded-3">
+          <h5 class="text-white fw-bold mb-4">
+            <i class="bi bi-input-cursor-text text-warning me-2"></i>
+            Input Data OHLCV
+          </h5>
+
+          <!-- Open -->
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">
+              Open Price (USD)
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark-input border-0 text-muted">
+                $
+              </span>
+              <input type="number" id="inputOpen" step="0.01" min="0"
+                     class="form-control form-control-dark"
+                     placeholder="contoh: 150.25" />
+            </div>
+          </div>
+
+          <!-- High -->
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">
+              High Price (USD)
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark-input border-0 text-muted">
+                $
+              </span>
+              <input type="number" id="inputHigh" step="0.01" min="0"
+                     class="form-control form-control-dark"
+                     placeholder="contoh: 155.80" />
+            </div>
+          </div>
+
+          <!-- Low -->
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">
+              Low Price (USD)
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark-input border-0 text-muted">
+                $
+              </span>
+              <input type="number" id="inputLow" step="0.01" min="0"
+                     class="form-control form-control-dark"
+                     placeholder="contoh: 148.50" />
+            </div>
+          </div>
+
+          <!-- Volume -->
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">
+              Volume
+            </label>
+            <input type="number" id="inputVolume" step="1" min="0"
+                   class="form-control form-control-dark"
+                   placeholder="contoh: 75000000" />
+          </div>
+
+          <!-- Harga Historis -->
+          <div class="mb-4">
+            <label class="form-label text-muted small fw-semibold">
+              Riwayat Harga Close
+              <span class="badge bg-warning text-dark ms-1">
+                Min. 30 data
+              </span>
+            </label>
+            <textarea id="inputHistory" rows="5"
+                      class="form-control form-control-dark font-mono"
+                      placeholder="Masukkan harga close historis dipisahkan koma.
+Contoh: 140.5, 141.2, 143.0, 142.5, ...
+(urutkan dari terlama ke terbaru)"></textarea>
+            <div class="d-flex justify-content-between mt-1">
+              <small class="text-muted">Pisahkan dengan koma</small>
+              <small id="historyCount" class="text-warning">0 data</small>
+            </div>
+          </div>
+
+          <!-- Tombol -->
+          <div class="d-grid gap-2">
+            <button id="btnPredict"
+                    class="btn btn-warning btn-lg fw-bold"
+                    onclick="runPrediction()">
+              <i class="bi bi-play-fill me-2"></i>Jalankan Prediksi
+            </button>
+            <button class="btn btn-outline-secondary btn-sm"
+                    onclick="fillSampleData()">
+              <i class="bi bi-magic me-2"></i>Isi Data Contoh (AAPL)
+            </button>
+          </div>
+
+          <!-- Alert error -->
+          <div id="alertError"
+               class="alert alert-danger mt-3 d-none small" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span id="alertErrorMsg"></span>
+          </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box p-3 rounded-3 mt-3">
+          <h6 class="text-warning fw-bold mb-2">
+            <i class="bi bi-info-circle me-2"></i>Panduan Pengisian
+          </h6>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-1">
+              <i class="bi bi-dot text-warning"></i>
+              Open, High, Low = harga hari ini
+            </li>
+            <li class="mb-1">
+              <i class="bi bi-dot text-warning"></i>
+              High harus ≥ Low
+            </li>
+            <li class="mb-1">
+              <i class="bi bi-dot text-warning"></i>
+              Riwayat = 30+ hari ke belakang
+            </li>
+            <li>
+              <i class="bi bi-dot text-warning"></i>
+              LSTM butuh minimal 10 data
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── HASIL PREDIKSI ──────────────────────────────── -->
+      <div class="col-lg-7" data-aos="fade-left">
+
+        <!-- Loading -->
+        <div id="loadingBox" class="d-none text-center py-5">
+          <div class="spinner-border text-warning mb-3" role="status"></div>
+          <p class="text-muted">Menjalankan 5 model prediksi...</p>
+        </div>
+
+        <!-- Placeholder sebelum prediksi -->
+        <div id="placeholderBox" class="card-dark p-5 rounded-3 text-center">
+          <i class="bi bi-graph-up-arrow fs-1 text-warning opacity-50 mb-3 d-block"></i>
+          <h5 class="text-white fw-bold">Hasil Prediksi</h5>
+          <p class="text-muted small">
+            Isi form di sebelah kiri dan klik
+            <strong class="text-warning">Jalankan Prediksi</strong>
+            untuk melihat hasil dari semua model.
+          </p>
+        </div>
+
+        <!-- Hasil -->
+        <div id="resultBox" class="d-none">
+
+          <!-- Kondisi Pasar (K-Means) -->
+          <div id="marketConditionCard"
+               class="market-card p-4 rounded-3 mb-4 text-center">
+            <p class="text-muted small mb-1">Kondisi Pasar (K-Means)</p>
+            <h3 id="marketConditionLabel"
+                class="fw-bold mb-1">—</h3>
+            <small id="marketConditionSub" class="text-muted"></small>
+          </div>
+
+          <!-- Rata-rata Prediksi -->
+          <div class="card-dark p-4 rounded-3 mb-4 text-center">
+            <p class="text-muted small mb-1">Rata-rata Prediksi Semua Model</p>
+            <h2 class="text-warning fw-bold mb-0">
+              $<span id="avgPrediction">—</span>
+            </h2>
+            <small class="text-muted">Harga Close Prediksi</small>
+          </div>
+
+          <!-- Grid Hasil per Model -->
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <div class="model-result-card p-3 rounded-3 text-center">
+                <div class="model-icon mb-2">
+                  <i class="bi bi-graph-up text-primary fs-4"></i>
+                </div>
+                <small class="text-muted d-block">Linear Regression</small>
+                <h5 class="text-white fw-bold mb-0">
+                  $<span id="predLR">—</span>
+                </h5>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="model-result-card p-3 rounded-3 text-center">
+                <div class="model-icon mb-2">
+                  <i class="bi bi-cpu text-success fs-4"></i>
+                </div>
+                <small class="text-muted d-block">ANN</small>
+                <h5 class="text-white fw-bold mb-0">
+                  $<span id="predANN">—</span>
+                </h5>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="model-result-card p-3 rounded-3 text-center">
+                <div class="model-icon mb-2">
+                  <i class="bi bi-arrow-repeat text-info fs-4"></i>
+                </div>
+                <small class="text-muted d-block">LSTM</small>
+                <h5 class="text-white fw-bold mb-0">
+                  $<span id="predLSTM">—</span>
+                </h5>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="model-result-card p-3 rounded-3 text-center">
+                <div class="model-icon mb-2">
+                  <i class="bi bi-gear-wide-connected text-danger fs-4"></i>
+                </div>
+                <small class="text-muted d-block">Backpropagation</small>
+                <h5 class="text-white fw-bold mb-0">
+                  $<span id="predBP">—</span>
+                </h5>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart Perbandingan Prediksi -->
+          <div class="card-dark p-4 rounded-3">
+            <h6 class="text-white fw-bold mb-3">
+              <i class="bi bi-bar-chart text-warning me-2"></i>
+              Perbandingan Hasil Prediksi
+            </h6>
+            <canvas id="predictionChart" height="160"></canvas>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Sample Data AAPL ──────────────────────────────────────
+function fillSampleData() {
+  document.getElementById('inputOpen').value   = '155.20';
+  document.getElementById('inputHigh').value   = '158.50';
+  document.getElementById('inputLow').value    = '154.10';
+  document.getElementById('inputVolume').value = '72000000';
+
+  const history = [
+    130.5,131.2,132.0,131.5,133.0,134.2,133.8,135.0,136.5,135.8,
+    137.2,138.0,137.5,139.0,140.2,139.8,141.0,142.5,141.8,143.0,
+    144.5,143.8,145.0,146.2,145.5,147.0,148.2,147.8,149.0,150.5,
+    149.8,151.0,152.5,151.8,153.0,154.2,153.8,155.0,156.5,155.8
+  ];
+  document.getElementById('inputHistory').value = history.join(', ');
+  updateHistoryCount();
+}
+
+// ── Hitung jumlah data historis ───────────────────────────
+function updateHistoryCount() {
+  const raw = document.getElementById('inputHistory').value.trim();
+  if (!raw) {
+    document.getElementById('historyCount').textContent = '0 data';
+    return;
+  }
+  const arr = raw.split(',').map(s => s.trim()).filter(s => s !== '');
+  const count = arr.length;
+  const el    = document.getElementById('historyCount');
+  el.textContent = `${count} data`;
+  el.className   = count >= 30
+    ? 'text-success'
+    : count >= 10
+      ? 'text-warning'
+      : 'text-danger';
+}
+
+document.getElementById('inputHistory')
+  .addEventListener('input', updateHistoryCount);
+
+// ── Validasi input ────────────────────────────────────────
+function validateInputs() {
+  const open   = parseFloat(document.getElementById('inputOpen').value);
+  const high   = parseFloat(document.getElementById('inputHigh').value);
+  const low    = parseFloat(document.getElementById('inputLow').value);
+  const volume = parseFloat(document.getElementById('inputVolume').value);
+  const rawHist = document.getElementById('inputHistory').value.trim();
+
+  if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(volume)) {
+    return { valid: false, msg: 'Semua field harga dan volume wajib diisi.' };
+  }
+  if (high < low) {
+    return { valid: false, msg: 'High tidak boleh lebih kecil dari Low.' };
+  }
+  if (open <= 0 || high <= 0 || low <= 0 || volume <= 0) {
+    return { valid: false, msg: 'Nilai harga dan volume harus lebih dari 0.' };
+  }
+  if (!rawHist) {
+    return { valid: false, msg: 'Riwayat harga historis wajib diisi.' };
+  }
+
+  const histArr = rawHist.split(',')
+    .map(s => parseFloat(s.trim()))
+    .filter(v => !isNaN(v));
+
+  if (histArr.length < 10) {
+    return { valid: false,
+             msg: `Minimal 10 data historis. Saat ini: ${histArr.length}.` };
+  }
+
+  return { valid: true, open, high, low, volume, history: histArr };
+}
+
+// ── Warna kondisi pasar ───────────────────────────────────
+function getMarketStyle(condition) {
+  const map = {
+    'Bullish' : { bg: 'rgba(76,175,80,0.15)',
+                  border: '#4CAF50', text: '#4CAF50',
+                  icon: 'bi-arrow-up-circle-fill',
+                  sub: 'Tren naik — sinyal positif' },
+    'Bearish' : { bg: 'rgba(244,67,54,0.15)',
+                  border: '#F44336', text: '#F44336',
+                  icon: 'bi-arrow-down-circle-fill',
+                  sub: 'Tren turun — waspadai risiko' },
+    'Sideways': { bg: 'rgba(255,152,0,0.15)',
+                  border: '#FF9800', text: '#FF9800',
+                  icon: 'bi-dash-circle-fill',
+                  sub: 'Pergerakan datar — pasar konsolidasi' }
+  };
+  return map[condition] || {
+    bg: 'rgba(255,255,255,0.05)',
+    border: '#6B7280', text: '#9CA3AF',
+    icon: 'bi-question-circle',
+    sub: 'Kondisi tidak teridentifikasi'
+  };
+}
+
+// ── Chart prediksi ────────────────────────────────────────
+let predChart = null;
+
+function renderPredictionChart(preds) {
+  const ctx = document.getElementById('predictionChart');
+  if (predChart) predChart.destroy();
+
+  const labels = Object.keys(preds);
+  const values = Object.values(preds);
+  const colors = [
+    '#3B82F6', '#10B981', '#06B6D4', '#EF4444'
+  ];
+
+  predChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Prediksi Harga (USD)',
+        data: values,
+        backgroundColor: colors.map(c => c + '33'),
+        borderColor: colors,
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` $${ctx.parsed.y.toFixed(4)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#9CA3AF', font: { size: 11 } },
+          grid:  { color: 'rgba(255,255,255,0.05)' }
+        },
+        y: {
+          ticks: {
+            color: '#9CA3AF',
+            font:  { size: 11 },
+            callback: v => `$${v}`
+          },
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        }
+      }
+    }
+  });
+}
+
+// ── Main: Jalankan Prediksi ───────────────────────────────
+async function runPrediction() {
+  // Sembunyikan error
+  document.getElementById('alertError').classList.add('d-none');
+
+  // Validasi
+  const inp = validateInputs();
+  if (!inp.valid) {
+    document.getElementById('alertErrorMsg').textContent = inp.msg;
+    document.getElementById('alertError').classList.remove('d-none');
+    return;
+  }
+
+  // Tampilkan loading
+  document.getElementById('placeholderBox').classList.add('d-none');
+  document.getElementById('resultBox').classList.add('d-none');
+  document.getElementById('loadingBox').classList.remove('d-none');
+  document.getElementById('btnPredict').disabled = true;
+
+  try {
+    const res = await fetch('/api/predict', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({
+        open          : inp.open,
+        high          : inp.high,
+        low           : inp.low,
+        volume        : inp.volume,
+        close_history : inp.history
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Terjadi kesalahan pada server.');
+    }
+
+    const p = data.predictions;
+
+    // ── Isi hasil prediksi ────────────────────────────────
+    document.getElementById('predLR').textContent =
+      p.linear_regression?.toFixed(4) ?? '—';
+    document.getElementById('predANN').textContent =
+      p.ann?.toFixed(4) ?? '—';
+    document.getElementById('predLSTM').textContent =
+      p.lstm !== null ? p.lstm?.toFixed(4) : '—';
+    document.getElementById('predBP').textContent =
+      p.backpropagation?.toFixed(4) ?? '—';
+    document.getElementById('avgPrediction').textContent =
+      p.average_prediction?.toFixed(4) ?? '—';
+
+    // ── Kondisi pasar ─────────────────────────────────────
+    const condition = p.kmeans?.market_condition ?? 'Unknown';
+    const style     = getMarketStyle(condition);
+    const card      = document.getElementById('marketConditionCard');
+    card.style.background   = style.bg;
+    card.style.borderLeft   = `4px solid ${style.border}`;
+    document.getElementById('marketConditionLabel').innerHTML =
+      `<i class="bi ${style.icon} me-2"></i>${condition}`;
+    document.getElementById('marketConditionLabel').style.color = style.text;
+    document.getElementById('marketConditionSub').textContent  = style.sub;
+
+    // ── Chart ─────────────────────────────────────────────
+    const chartData = {};
+    if (p.linear_regression) chartData['Linear Reg'] = p.linear_regression;
+    if (p.ann)               chartData['ANN']        = p.ann;
+    if (p.lstm)              chartData['LSTM']       = p.lstm;
+    if (p.backpropagation)   chartData['Backprop']   = p.backpropagation;
+    renderPredictionChart(chartData);
+
+    // Tampilkan hasil
+    document.getElementById('loadingBox').classList.add('d-none');
+    document.getElementById('resultBox').classList.remove('d-none');
+
+  } catch (err) {
+    document.getElementById('loadingBox').classList.add('d-none');
+    document.getElementById('placeholderBox').classList.remove('d-none');
+    document.getElementById('alertErrorMsg').textContent = err.message;
+    document.getElementById('alertError').classList.remove('d-none');
+  } finally {
+    document.getElementById('btnPredict').disabled = false;
+  }
+}
+</script>
+{% endblock %}

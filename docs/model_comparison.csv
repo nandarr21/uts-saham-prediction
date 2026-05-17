@@ -1,0 +1,6 @@
+Model,MAE,RMSE,R²,MAPE (%),Catatan Khusus
+Linear Regression,0.3958,0.5673,0.9968,0.24,Baseline model
+ANN,3.3417,3.6617,0.8675,2.04,Dense multilayer
+LSTM,4.2677,4.9658,0.7563,2.6,Lookback 10 hari
+K-Means,-,-,-,-,"K=3, Sil=0.2954"
+Backpropagation,1.7348,2.0791,0.9573,1.07,Conv.~epoch 2
