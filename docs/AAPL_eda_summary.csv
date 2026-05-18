@@ -1,0 +1,2 @@
+stock,total_rows,start_date,end_date,min_close,max_close,mean_close,std_close,mean_volume,mean_daily_return,mean_volatility,mean_RSI
+AAPL,1259,2013-02-08,2018-02-07,55.7899,179.26,109.06669849086578,30.55681167696467,54047899.73550437,0.0007861966919191563,1.857515645127222,55.28750411083711
