@@ -42,8 +42,8 @@ stock-prediction/
 
 ```bash
 # Clone repository
-git clone https://github.com/USERNAME/stock-prediction.git
-cd stock-prediction
+git clone https://github.com/nandarr21/uts-saham-prediction
+cd uts-saham-prediction
 
 # Install dependencies
 pip install -r requirements.txt
@@ -56,9 +56,8 @@ python app.py
 Buka browser: `http://localhost:5000`
 
 ## Link Penting
-- **Demo Aplikasi** : https://stockai.my.id
-- **Laporan PDF**   : [link laporan]
-- **Video YouTube** : [link video]
+- **Demo Aplikasi** : https://www.prediksi-saham.my.id/ 
+- **Video YouTube** : https://youtu.be/qYZ3EX4e1zY 
 
 ## Dataset
 - **Nama**    : S&P 500 All Stocks 5 Years
