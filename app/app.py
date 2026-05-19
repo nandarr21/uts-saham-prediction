@@ -98,73 +98,117 @@ M['bp'] = NeuralNetworkManual.load(os.path.join(MODELS_DIR, 'backprop_model.pkl'
 # ──────────────────────────────────────────────────────────
 # HELPER: FEATURE ENGINEERING
 # ──────────────────────────────────────────────────────────
+def compute_cluster_features(close_history, rsi, volatility, price_range):
+    close_arr = np.array(close_history, dtype=float)
+
+    # return_5d, return_10d, return_20d
+    def safe_return(arr, n):
+        if len(arr) > n:
+            return (arr[-1] - arr[-n-1]) / arr[-n-1] if arr[-n-1] != 0 else 0.0
+        return 0.0
+
+    return_5d  = safe_return(close_arr, 5)
+    return_10d = safe_return(close_arr, 10)
+    return_20d = safe_return(close_arr, 20)
+
+    # vol_ratio: volatility 5 hari / volatility 20 hari
+    vol5  = np.std(close_arr[-5:])  if len(close_arr) >= 5  else 0.0
+    vol20 = np.std(close_arr[-20:]) if len(close_arr) >= 20 else 1e-10
+    vol_ratio = vol5 / vol20 if vol20 != 0 else 0.0
+
+    # range_ratio: price_range / close terakhir
+    range_ratio = price_range / close_arr[-1] if close_arr[-1] != 0 else 0.0
+
+    # ma_gap_5_20: (MA5 - MA20) / MA20
+    ma5  = np.mean(close_arr[-5:])  if len(close_arr) >= 5  else close_arr[-1]
+    ma20 = np.mean(close_arr[-20:]) if len(close_arr) >= 20 else close_arr[-1]
+    ma_gap_5_20 = (ma5 - ma20) / ma20 if ma20 != 0 else 0.0
+
+    # Urutan HARUS sama persis dengan CLUSTER_FEATURES di training
+    return np.array([
+        rsi,          # RSI
+        return_5d,    # return_5d
+        return_10d,   # return_10d
+        return_20d,   # return_20d
+        vol_ratio,    # vol_ratio
+        range_ratio,  # range_ratio
+        ma_gap_5_20   # ma_gap_5_20
+    ], dtype=float)
+
+    return features
+
+
+# app.py — letakkan di bagian atas, sebelum @app.route
+
+import numpy as np
+
 def compute_features(open_, high, low, close_series, volume):
-    """
-    Hitung semua fitur dari data OHLCV
-    close_series: array/list harga close historis (minimal 20 data)
-    Return: array 1D shape (15,)
-    """
     close_arr = np.array(close_series, dtype=float)
     close_now = close_arr[-1]
 
-    # Lag features
     lag1 = close_arr[-2] if len(close_arr) >= 2 else close_now
     lag2 = close_arr[-3] if len(close_arr) >= 3 else close_now
     lag3 = close_arr[-4] if len(close_arr) >= 4 else close_now
     lag5 = close_arr[-6] if len(close_arr) >= 6 else close_now
 
-    # Moving averages
     ma5  = np.mean(close_arr[-5:])  if len(close_arr) >= 5  else close_now
     ma10 = np.mean(close_arr[-10:]) if len(close_arr) >= 10 else close_now
     ma20 = np.mean(close_arr[-20:]) if len(close_arr) >= 20 else close_now
 
-    # Volatility
-    volatility = np.std(close_arr[-10:]) if len(close_arr) >= 10 else 0.0
-
-    # Price range
+    volatility  = np.std(close_arr[-10:]) if len(close_arr) >= 10 else 0.0
     price_range = float(high) - float(low)
-
-    # Daily return
     daily_return = (close_now - lag1) / lag1 if lag1 != 0 else 0.0
 
-    # RSI (14)
     if len(close_arr) >= 15:
         deltas = np.diff(close_arr[-15:])
-        gain   = np.mean(deltas[deltas > 0]) if any(deltas > 0) else 0
-        loss   = np.mean(-deltas[deltas < 0]) if any(deltas < 0) else 1e-10
-        rsi    = 100 - (100 / (1 + gain / loss))
+        gain = np.mean(deltas[deltas > 0]) if any(deltas > 0) else 0
+        loss = np.mean(-deltas[deltas < 0]) if any(deltas < 0) else 1e-10
+        rsi  = 100 - (100 / (1 + gain / loss))
     else:
         rsi = 50.0
 
-    features = np.array([
+    return np.array([
         float(open_), float(high), float(low), float(volume),
         lag1, lag2, lag3, lag5,
         ma5, ma10, ma20,
         volatility, price_range, daily_return, rsi
     ], dtype=float)
 
-    return features
 
-
-def compute_cluster_features(close_series, rsi, volatility, price_range):
-    """
-    Hitung fitur khusus untuk K-Means clustering
-    """
+def compute_features(open_, high, low, close_series, volume):
     close_arr = np.array(close_series, dtype=float)
     close_now = close_arr[-1]
 
-    return_5d  = (close_now - close_arr[-6])  / close_arr[-6]  \
-                 if len(close_arr) >= 6  else 0.0
-    return_20d = (close_now - close_arr[-21]) / close_arr[-21] \
-                 if len(close_arr) >= 21 else 0.0
-    vol_ratio  = volatility / close_now if close_now != 0 else 0.0
-    ma5        = np.mean(close_arr[-5:])  if len(close_arr) >= 5  else close_now
-    ma20       = np.mean(close_arr[-20:]) if len(close_arr) >= 20 else close_now
+    lag1 = close_arr[-2] if len(close_arr) >= 2 else close_now
+    lag2 = close_arr[-3] if len(close_arr) >= 3 else close_now
+    lag3 = close_arr[-4] if len(close_arr) >= 4 else close_now
+    lag5 = close_arr[-6] if len(close_arr) >= 6 else close_now
+
+    ma5  = np.mean(close_arr[-5:])  if len(close_arr) >= 5  else close_now
+    ma10 = np.mean(close_arr[-10:]) if len(close_arr) >= 10 else close_now
+    ma20 = np.mean(close_arr[-20:]) if len(close_arr) >= 20 else close_now
+
+    volatility   = np.std(close_arr[-10:], ddof=1) if len(close_arr) >= 10 else 0.0
+    price_range  = float(high) - float(low)
+    daily_return = (close_now - lag1) / lag1 if lag1 != 0 else 0.0
+
+    # ✅ RSI versi Wilder's (sama dengan rolling(14).mean() di training)
+    if len(close_arr) >= 15:
+        delta = np.diff(close_arr[-15:])          # 14 perubahan
+        gain  = np.where(delta > 0, delta, 0.0)
+        loss  = np.where(delta < 0, -delta, 0.0)
+        avg_gain = gain.mean()                     # simple mean of 14 periods
+        avg_loss = loss.mean()
+        rs  = avg_gain / avg_loss if avg_loss != 0 else 1e10
+        rsi = 100 - (100 / (1 + rs))
+    else:
+        rsi = 50.0
 
     return np.array([
-        rsi, volatility, vol_ratio,
-        return_5d, return_20d,
-        price_range, ma5, ma20
+        float(open_), float(high), float(low), float(volume),
+        lag1, lag2, lag3, lag5,
+        ma5, ma10, ma20,
+        volatility, price_range, daily_return, rsi
     ], dtype=float)
 
 
@@ -230,17 +274,14 @@ def predict():
         results = {}
 
         # ── 1. Linear Regression ──────────────────────────
-        pred_lr_sc = M['lr'].predict(features_sc)
-        pred_lr    = M['scaler_y'].inverse_transform(
-                         pred_lr_sc.reshape(-1, 1)
-                     ).ravel()[0]
-        results['linear_regression'] = round(float(pred_lr), 4)
-
+        pred_lr = float(M['lr'].predict(features_sc)[0])
+        results['linear_regression'] = round(pred_lr, 4)
+                        
         # ── 2. ANN ────────────────────────────────────────
         pred_ann_sc = M['ann'].predict(features_sc, verbose=0).ravel()
         pred_ann    = M['scaler_y'].inverse_transform(
-                          pred_ann_sc.reshape(-1, 1)
-                      ).ravel()[0]
+                  pred_ann_sc.reshape(-1, 1)
+              ).ravel()[0]
         results['ann'] = round(float(pred_ann), 4)
 
         # ── 3. LSTM ───────────────────────────────────────
